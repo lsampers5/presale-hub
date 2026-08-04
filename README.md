@@ -1,21 +1,34 @@
-#Ticketmaster Presale tracker
-
-##What does it do
-    ###Search an artist
-    ###Pulls information on upcoming events
-        - Whether the presale passed or is upcoming
-        - start and end times of presales
+# Ticketmaster Presale tracker
 
 
-##Set up / How to run
-    ###pip install
-        - requests
-        - python-dotenv
-        - tzdata
-    ###Make you own `.env` file with `TICKETMASTER_KEY`
+## What does it do
+- Search an artist
+- Pulls information on upcoming events
+- Whether the presale passed or is upcoming
+- Start and end times of presales
 
-##Planned Features
-    ###Filter by upcoming presales
 
-##Tech Stack
-    ###Python, Ticketmaster Discovery API, the libraries
+## Set up / How to run
+Install the following libraries:
+```bash
+pip install requests python-dotenv tzdata
+```
+
+Make you own `.env` file with `TICKETMASTER_KEY`
+
+```
+TICKETMASTER_KEY=your_key_here
+```
+
+Then run:
+
+```bash
+python main.py
+```
+
+## Planned Features
+- Filter by upcoming presales
+- Alerts for presales opening soon
+
+## Tech Stack
+Python, Ticketmaster Discovery API, libraries: requests, python-dotenv, tzdata

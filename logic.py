@@ -14,7 +14,7 @@ def get_events(artist):
         params = {"apikey": api_key, "keyword": artist}
         # Make the requests
         response = requests.get(url, params=params)
-        if response.status_code != 200:# TODO: try to find away to also return status code (idea tuple maybe)
+        if response.status_code != 200:
             return ("failed", None, response.status_code) 
         
         data = response.json()
@@ -40,9 +40,7 @@ def proccess_events(events, current_day):
             all_presales.extend(proccessed) # extend merges list to keep it flat
 
     return all_presales
-
-        
-        
+ 
 # returns a list of dictionaries
 def proccess_presales(presales, current_day):
     result = []
@@ -93,8 +91,3 @@ def event_presale_to_string(events_info):
         for event_info in events_info
     )
     return result
-
-
-
-        
-        

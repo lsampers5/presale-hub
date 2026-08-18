@@ -41,6 +41,7 @@ def proccess_events(events, current_day): # Returns [events{event_name, event_ur
             'event_name': event.get('name'),
             'event_url': event.get('url'),
             'event_date_time': event_date_time,
+            'event_id': event.get('id'),
         }
         try :
             event_info['venue'] = event["_embedded"]['venues'][0]['name']

@@ -22,6 +22,7 @@ def main():
         elif result == "failed":
             print(f"Request failed with status code {status_code}. Please try again.")
             continue
+
         
         events_info = proccess_events(events, time_now)
 

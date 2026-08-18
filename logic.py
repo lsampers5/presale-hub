@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from helper import to_eastern, format_time, get_status
+import json
 
 # Returns the events of an artist
 def get_events(artist):
@@ -30,45 +31,67 @@ def is_valid_artist(artist_name):
     return len(artist_name.strip()) >= 2
  
 # Returns a flat list of dictionaries with presale information accross all valid events
+# Need to change this first
 
-def proccess_events(events, current_day):
-    all_presales = []
+def proccess_events(events, current_day): # Returns [events{event_name, event_url, venue, event_date_time, presale_name, presale_status, presale_start, presale_end}]
+    events_info = []
     for event in events:
+        event_date_time = f"LocalDate: {event["dates"]["start"]["localDate"]} | LocalTime: {event["dates"]["start"]["localTime"]}"
+        event_info = {
+            'event_name': event.get('name'),
+            'event_url': event.get('url'),
+            'event_date_time': event_date_time,
+        }
+        try :
+            event_info['venue'] = event["_embedded"]['venues'][0]['name']
+        except (KeyError):
+            event_info['venue'] = 'Unknown Venue'
+    
         presales = event.get("sales", {}).get("presales", [])
-        proccessed = proccess_presales(presales, current_day)
+        proccessed = proccess_presales(presales, current_day, event_info)
         if proccessed:
-            all_presales.extend(proccessed) # extend merges list to keep it flat
+            events_info.extend(proccessed)
 
-    return all_presales
+    return events_info
  
 # returns a list of dictionaries
-def proccess_presales(presales, current_day):
+def proccess_presales(presales, current_day, event_info):
     result = []
     if presales:
         for presale in presales:
-            event_name = presale.get("name", "Unamed")
-            start = presale.get("startDateTime")
+            presale_name = presale.get("name", "Unamed")
+            presale_start = presale.get("startDateTime")
             try:
                 # format time
-                start_eastern = to_eastern(start)
-                formatted_start = format_time(start_eastern)
+                presale_start_eastern = to_eastern(presale_start)
+                presale_formatted_start = format_time(presale_start_eastern)
 
             except(ValueError, TypeError):
-                formatted_start = "no start time"
+                presale_formatted_start = "no start time"
 
-            end = presale.get("endDateTime")
+            presale_end = presale.get("endDateTime")
             try:
-                end_eastern = to_eastern(end)
-                formatted_end = format_time(end_eastern)
-                if start_eastern and end_eastern:
-                    status = get_status(start_eastern, end_eastern, current_day)
+                presale_end_eastern = to_eastern(presale_end)
+                presale_formatted_end = format_time(presale_end_eastern)
+                if presale_start_eastern and presale_end_eastern:
+                    presale_status = get_status(presale_start_eastern, presale_end_eastern, current_day)
                 else:
-                    status = 'unknown'
+                    presale_status = 'unknown'
             except(ValueError, TypeError):
-                formatted_end = "no end time"
-                status = "unknown"
-
-            result.append({'event_name': event_name, 'status': status, 'start': formatted_start, 'end': formatted_end})
+                presale_formatted_end = "no end time"
+                presale_status = "unknown"
+            if presale.get('description'):
+                description = presale.get('description')
+            else:
+                description = "No description provided."
+            res = {**event_info,
+                    'presale_name': presale_name,
+                    'presale_status': presale_status,
+                    'presale_start': presale_formatted_start,
+                    'presale_end': presale_formatted_end,
+                    'presale_description': description,
+                }
+            result.append(res)
         return result
     else:
         return None
@@ -76,7 +99,7 @@ def proccess_presales(presales, current_day):
 def filter_upcoming_active_presales(events_info):
     filtered_events = []
     for event_info in events_info:
-        if event_info['status'] != 'PAST':
+        if event_info['presale_status'] != 'PAST':
             filtered_events.append(event_info)
 
 
@@ -87,7 +110,7 @@ def filter_upcoming_active_presales(events_info):
 def event_presale_to_string(events_info):
 
     result = "\n".join(
-        f"Event Name: {event_info['event_name']} | Status: {event_info['status']} | Start Date: {event_info['start']} | End Dates: {event_info['end']}"
+        f"Event: {event_info['event_name']} | Presale: {event_info['presale_name']} | Status: {event_info['presale_status']} | Start Date: {event_info['presale_start']} | End Dates: {event_info['presale_end']}"
         for event_info in events_info
     )
     return result
